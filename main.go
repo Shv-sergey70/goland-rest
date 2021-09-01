@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 )
@@ -24,15 +25,27 @@ func allArticles(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(articles)
 }
 
+func allPostArticles(w http.ResponseWriter, r *http.Request) {
+	articles := Articles{
+		Article{Title: "Test title post", Desc: "Test Desctiption post", Content: "Hello world!"},
+	}
+	fmt.Println("All post articles endpoint")
+
+	json.NewEncoder(w).Encode(articles)
+}
+
 func homePage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Homepage endpoint")
 }
 
 func handleRequests() {
-	http.HandleFunc("/", homePage)
-	http.HandleFunc("/articles", allArticles)
+	router := mux.NewRouter().StrictSlash(true)
 
-	log.Fatal(http.ListenAndServe(":8083", nil))
+	router.HandleFunc("/", homePage)
+	router.HandleFunc("/articles", allArticles).Methods("GET")
+	router.HandleFunc("/articles", allPostArticles).Methods("POST")
+
+	log.Fatal(http.ListenAndServe(":8083", router))
 }
 
 func main() {
